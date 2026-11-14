@@ -1,0 +1,2086 @@
+{
+ "params": [
+  {
+   "key": "mode",
+   "name": "Mode",
+   "options": [
+    "RECEIVE",
+    "SEND"
+   ],
+   "default": "RECEIVE",
+   "qlink_ticks": 1
+  },
+  {
+   "key": "chan",
+   "name": "Chan",
+   "options": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "default": "A",
+   "qlink_ticks": 3
+  },
+  {
+   "key": "freq",
+   "name": "Freq",
+   "min": 0,
+   "max": 1000,
+   "default": 193,
+   "dynamic_display": true
+  },
+  {
+   "key": "q",
+   "name": "Q",
+   "min": 0,
+   "max": 100,
+   "default": 55,
+   "dynamic_display": true
+  },
+  {
+   "key": "ratio",
+   "name": "Ratio",
+   "min": 1,
+   "max": 21,
+   "default": 4,
+   "dynamic_display": true
+  },
+  {
+   "key": "thresh",
+   "name": "Thresh",
+   "min": -60,
+   "max": 0,
+   "default": -20,
+   "dynamic_display": true
+  },
+  {
+   "key": "attack",
+   "name": "Atk",
+   "min": 0,
+   "max": 100,
+   "default": 18,
+   "dynamic_display": true
+  },
+  {
+   "key": "release",
+   "name": "Rel",
+   "min": 0,
+   "max": 100,
+   "default": 81,
+   "dynamic_display": true
+  },
+  {
+   "key": "amount",
+   "name": "Amount",
+   "min": -600,
+   "max": 300,
+   "default": -90,
+   "dynamic_display": true
+  },
+  {
+   "key": "gr",
+   "name": "GR",
+   "min": -300,
+   "max": 300,
+   "default": 0,
+   "dynamic_display": true
+  },
+  {
+   "key": "link",
+   "name": "SC",
+   "options": [
+    "NO SC",
+    "SC OK"
+   ],
+   "default": "NO SC"
+  },
+  {
+   "key": "noop",
+   "name": "-",
+   "momentary": true
+  },
+  {
+   "key": "c0",
+   "name": "Curve 1",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c1",
+   "name": "Curve 2",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c2",
+   "name": "Curve 3",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c3",
+   "name": "Curve 4",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c4",
+   "name": "Curve 5",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c5",
+   "name": "Curve 6",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c6",
+   "name": "Curve 7",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c7",
+   "name": "Curve 8",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c8",
+   "name": "Curve 9",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c9",
+   "name": "Curve 10",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c10",
+   "name": "Curve 11",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c11",
+   "name": "Curve 12",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c12",
+   "name": "Curve 13",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c13",
+   "name": "Curve 14",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c14",
+   "name": "Curve 15",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c15",
+   "name": "Curve 16",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c16",
+   "name": "Curve 17",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c17",
+   "name": "Curve 18",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c18",
+   "name": "Curve 19",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c19",
+   "name": "Curve 20",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c20",
+   "name": "Curve 21",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c21",
+   "name": "Curve 22",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c22",
+   "name": "Curve 23",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c23",
+   "name": "Curve 24",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c24",
+   "name": "Curve 25",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c25",
+   "name": "Curve 26",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c26",
+   "name": "Curve 27",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c27",
+   "name": "Curve 28",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c28",
+   "name": "Curve 29",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c29",
+   "name": "Curve 30",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c30",
+   "name": "Curve 31",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c31",
+   "name": "Curve 32",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c32",
+   "name": "Curve 33",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c33",
+   "name": "Curve 34",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c34",
+   "name": "Curve 35",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c35",
+   "name": "Curve 36",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c36",
+   "name": "Curve 37",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c37",
+   "name": "Curve 38",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c38",
+   "name": "Curve 39",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c39",
+   "name": "Curve 40",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c40",
+   "name": "Curve 41",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c41",
+   "name": "Curve 42",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c42",
+   "name": "Curve 43",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c43",
+   "name": "Curve 44",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c44",
+   "name": "Curve 45",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c45",
+   "name": "Curve 46",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c46",
+   "name": "Curve 47",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c47",
+   "name": "Curve 48",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c48",
+   "name": "Curve 49",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c49",
+   "name": "Curve 50",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c50",
+   "name": "Curve 51",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c51",
+   "name": "Curve 52",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c52",
+   "name": "Curve 53",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c53",
+   "name": "Curve 54",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c54",
+   "name": "Curve 55",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c55",
+   "name": "Curve 56",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c56",
+   "name": "Curve 57",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c57",
+   "name": "Curve 58",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c58",
+   "name": "Curve 59",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c59",
+   "name": "Curve 60",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c60",
+   "name": "Curve 61",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c61",
+   "name": "Curve 62",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c62",
+   "name": "Curve 63",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c63",
+   "name": "Curve 64",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c64",
+   "name": "Curve 65",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c65",
+   "name": "Curve 66",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c66",
+   "name": "Curve 67",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c67",
+   "name": "Curve 68",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c68",
+   "name": "Curve 69",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c69",
+   "name": "Curve 70",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c70",
+   "name": "Curve 71",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c71",
+   "name": "Curve 72",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c72",
+   "name": "Curve 73",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c73",
+   "name": "Curve 74",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c74",
+   "name": "Curve 75",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c75",
+   "name": "Curve 76",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c76",
+   "name": "Curve 77",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c77",
+   "name": "Curve 78",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c78",
+   "name": "Curve 79",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c79",
+   "name": "Curve 80",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c80",
+   "name": "Curve 81",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c81",
+   "name": "Curve 82",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c82",
+   "name": "Curve 83",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c83",
+   "name": "Curve 84",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c84",
+   "name": "Curve 85",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c85",
+   "name": "Curve 86",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c86",
+   "name": "Curve 87",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c87",
+   "name": "Curve 88",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c88",
+   "name": "Curve 89",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c89",
+   "name": "Curve 90",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c90",
+   "name": "Curve 91",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c91",
+   "name": "Curve 92",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c92",
+   "name": "Curve 93",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c93",
+   "name": "Curve 94",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c94",
+   "name": "Curve 95",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c95",
+   "name": "Curve 96",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c96",
+   "name": "Curve 97",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c97",
+   "name": "Curve 98",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c98",
+   "name": "Curve 99",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c99",
+   "name": "Curve 100",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c100",
+   "name": "Curve 101",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c101",
+   "name": "Curve 102",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c102",
+   "name": "Curve 103",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c103",
+   "name": "Curve 104",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c104",
+   "name": "Curve 105",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c105",
+   "name": "Curve 106",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c106",
+   "name": "Curve 107",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c107",
+   "name": "Curve 108",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c108",
+   "name": "Curve 109",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c109",
+   "name": "Curve 110",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c110",
+   "name": "Curve 111",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "c111",
+   "name": "Curve 112",
+   "min": 0,
+   "max": 60,
+   "default": 30
+  },
+  {
+   "key": "h0",
+   "name": "Ring 1",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h2",
+   "name": "Ring 3",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h4",
+   "name": "Ring 5",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h6",
+   "name": "Ring 7",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h8",
+   "name": "Ring 9",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h10",
+   "name": "Ring 11",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h12",
+   "name": "Ring 13",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h14",
+   "name": "Ring 15",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h16",
+   "name": "Ring 17",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h18",
+   "name": "Ring 19",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h20",
+   "name": "Ring 21",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h22",
+   "name": "Ring 23",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h24",
+   "name": "Ring 25",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h26",
+   "name": "Ring 27",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h28",
+   "name": "Ring 29",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h30",
+   "name": "Ring 31",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h32",
+   "name": "Ring 33",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h34",
+   "name": "Ring 35",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h36",
+   "name": "Ring 37",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h38",
+   "name": "Ring 39",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h40",
+   "name": "Ring 41",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h42",
+   "name": "Ring 43",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h44",
+   "name": "Ring 45",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h46",
+   "name": "Ring 47",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h48",
+   "name": "Ring 49",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h50",
+   "name": "Ring 51",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h52",
+   "name": "Ring 53",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h54",
+   "name": "Ring 55",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h56",
+   "name": "Ring 57",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h58",
+   "name": "Ring 59",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h60",
+   "name": "Ring 61",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h62",
+   "name": "Ring 63",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h64",
+   "name": "Ring 65",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h66",
+   "name": "Ring 67",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h68",
+   "name": "Ring 69",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h70",
+   "name": "Ring 71",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h72",
+   "name": "Ring 73",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h74",
+   "name": "Ring 75",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h76",
+   "name": "Ring 77",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h78",
+   "name": "Ring 79",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h80",
+   "name": "Ring 81",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h82",
+   "name": "Ring 83",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h84",
+   "name": "Ring 85",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h86",
+   "name": "Ring 87",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h88",
+   "name": "Ring 89",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h90",
+   "name": "Ring 91",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h92",
+   "name": "Ring 93",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h94",
+   "name": "Ring 95",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h96",
+   "name": "Ring 97",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h98",
+   "name": "Ring 99",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h100",
+   "name": "Ring 101",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h102",
+   "name": "Ring 103",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h104",
+   "name": "Ring 105",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h106",
+   "name": "Ring 107",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h108",
+   "name": "Ring 109",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "h110",
+   "name": "Ring 111",
+   "min": 0,
+   "max": 31,
+   "default": 0
+  },
+  {
+   "key": "peak",
+   "name": "SC Peak",
+   "min": 0,
+   "max": 1000,
+   "default": 0,
+   "dynamic_display": true
+  },
+  {
+   "key": "snap",
+   "name": "To Freq",
+   "momentary": true
+  },
+  {
+   "key": "l0",
+   "name": "Live 1",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l2",
+   "name": "Live 3",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l4",
+   "name": "Live 5",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l6",
+   "name": "Live 7",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l8",
+   "name": "Live 9",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l10",
+   "name": "Live 11",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l12",
+   "name": "Live 13",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l14",
+   "name": "Live 15",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l16",
+   "name": "Live 17",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l18",
+   "name": "Live 19",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l20",
+   "name": "Live 21",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l22",
+   "name": "Live 23",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l24",
+   "name": "Live 25",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l26",
+   "name": "Live 27",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l28",
+   "name": "Live 29",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l30",
+   "name": "Live 31",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l32",
+   "name": "Live 33",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l34",
+   "name": "Live 35",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l36",
+   "name": "Live 37",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l38",
+   "name": "Live 39",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l40",
+   "name": "Live 41",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l42",
+   "name": "Live 43",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l44",
+   "name": "Live 45",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l46",
+   "name": "Live 47",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l48",
+   "name": "Live 49",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l50",
+   "name": "Live 51",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l52",
+   "name": "Live 53",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l54",
+   "name": "Live 55",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l56",
+   "name": "Live 57",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l58",
+   "name": "Live 59",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l60",
+   "name": "Live 61",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l62",
+   "name": "Live 63",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l64",
+   "name": "Live 65",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l66",
+   "name": "Live 67",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l68",
+   "name": "Live 69",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l70",
+   "name": "Live 71",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l72",
+   "name": "Live 73",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l74",
+   "name": "Live 75",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l76",
+   "name": "Live 77",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l78",
+   "name": "Live 79",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l80",
+   "name": "Live 81",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l82",
+   "name": "Live 83",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l84",
+   "name": "Live 85",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l86",
+   "name": "Live 87",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l88",
+   "name": "Live 89",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l90",
+   "name": "Live 91",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l92",
+   "name": "Live 93",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l94",
+   "name": "Live 95",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l96",
+   "name": "Live 97",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l98",
+   "name": "Live 99",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l100",
+   "name": "Live 101",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l102",
+   "name": "Live 103",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l104",
+   "name": "Live 105",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l106",
+   "name": "Live 107",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l108",
+   "name": "Live 109",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "l110",
+   "name": "Live 111",
+   "min": 0,
+   "max": 30,
+   "default": 15
+  },
+  {
+   "key": "out",
+   "name": "Out",
+   "options": [
+    "OFF",
+    "ON"
+   ],
+   "default": "OFF"
+  },
+  {
+   "key": "s0",
+   "name": "Spec 1",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s2",
+   "name": "Spec 3",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s4",
+   "name": "Spec 5",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s6",
+   "name": "Spec 7",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s8",
+   "name": "Spec 9",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s10",
+   "name": "Spec 11",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s12",
+   "name": "Spec 13",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s14",
+   "name": "Spec 15",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s16",
+   "name": "Spec 17",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s18",
+   "name": "Spec 19",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s20",
+   "name": "Spec 21",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s22",
+   "name": "Spec 23",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s24",
+   "name": "Spec 25",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s26",
+   "name": "Spec 27",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s28",
+   "name": "Spec 29",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s30",
+   "name": "Spec 31",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s32",
+   "name": "Spec 33",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s34",
+   "name": "Spec 35",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s36",
+   "name": "Spec 37",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s38",
+   "name": "Spec 39",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s40",
+   "name": "Spec 41",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s42",
+   "name": "Spec 43",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s44",
+   "name": "Spec 45",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s46",
+   "name": "Spec 47",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s48",
+   "name": "Spec 49",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s50",
+   "name": "Spec 51",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s52",
+   "name": "Spec 53",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s54",
+   "name": "Spec 55",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s56",
+   "name": "Spec 57",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s58",
+   "name": "Spec 59",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s60",
+   "name": "Spec 61",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s62",
+   "name": "Spec 63",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s64",
+   "name": "Spec 65",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s66",
+   "name": "Spec 67",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s68",
+   "name": "Spec 69",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s70",
+   "name": "Spec 71",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s72",
+   "name": "Spec 73",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s74",
+   "name": "Spec 75",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s76",
+   "name": "Spec 77",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s78",
+   "name": "Spec 79",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s80",
+   "name": "Spec 81",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s82",
+   "name": "Spec 83",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s84",
+   "name": "Spec 85",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s86",
+   "name": "Spec 87",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s88",
+   "name": "Spec 89",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s90",
+   "name": "Spec 91",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s92",
+   "name": "Spec 93",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s94",
+   "name": "Spec 95",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s96",
+   "name": "Spec 97",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s98",
+   "name": "Spec 99",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s100",
+   "name": "Spec 101",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s102",
+   "name": "Spec 103",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s104",
+   "name": "Spec 105",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s106",
+   "name": "Spec 107",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s108",
+   "name": "Spec 109",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "s110",
+   "name": "Spec 111",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  }
+ ]
+}

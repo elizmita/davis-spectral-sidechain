@@ -1,0 +1,14 @@
+/* DAVIS Spectral Sidechain: Jost (a free, Futura-style geometric sans, SIL OFL: fonts/OFL-Jost.txt) for every baked text.
+ * MPC draws the live values (knob values, readouts) itself in its own font; those cannot change. */
+@font-face { font-family: "Jost"; font-weight: 400; src: url("fonts/jost-latin-400-normal.woff2"); }
+@font-face { font-family: "Jost"; font-weight: 500; src: url("fonts/jost-latin-500-normal.woff2"); }
+@font-face { font-family: "Jost"; font-weight: 700; src: url("fonts/jost-latin-700-normal.woff2"); }
+@font-face { font-family: "Jost"; font-weight: 900; src: url("fonts/jost-latin-900-normal.woff2"); }
+:root { --font: "Jost", "Titillium Web", sans-serif; --title-font: "Jost", sans-serif; }
+text { font-family: var(--font); font-weight: 500; }
+/* hardware look for the baked buttons: raised, a soft shadow, a light top edge */
+:root { --radius: 7px; --sheen: 0.22; --shadow: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35)); }
+.seg-bg { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35)); stroke: rgba(0, 0, 0, 0.35); stroke-width: 1; }
+.seg-tx { font-family: "Jost", sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.04em; }
+.button-bg { stroke: rgba(0, 0, 0, 0.35); stroke-width: 1; }
+.button-tx { font-family: "Jost", sans-serif; font-weight: 700; font-size: 17px; fill: #ffffff; letter-spacing: 0.04em; }
