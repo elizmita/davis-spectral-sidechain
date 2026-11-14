@@ -1,0 +1,33 @@
+# Builds DAVIS Spectral Sidechain for the MPC (armv7: MPC Live/One/X/Force) in GitHub Actions and attaches the zip to a DRAFT release.
+# Tools pinned to one mpc-vst-plugins commit, in both places below.
+#   GitHub -> Actions -> Release -> Run workflow: version (e.g. 1.0.0). With dry_run the zip is a run artifact only.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version, e.g. 1.0.0
+        type: string
+        required: true
+      dry_run:
+        description: Build and package only (zip as a run artifact), no draft release
+        type: boolean
+        default: true
+
+jobs:
+  vst:
+    uses: open-mpc/mpc-vst-plugins/.github/workflows/vst-release.yml@59fb2e8a9c3531270fda00c43e0236fefd893589
+    permissions: { contents: write }
+    with:
+      tag: spectral-sidechain-vst-v${{ inputs.version }}
+      version: ${{ inputs.version }}
+      tools_ref: 59fb2e8a9c3531270fda00c43e0236fefd893589
+      vst_dir: vst
+      # this port's wrapper (32-bit float audio, see wrapper/) replaces the stock one before the build and the host test
+      build: 'cp wrapper/vst2_wrap.c "$MPC_VST/wrapper/vst2_wrap.c" && "$MPC_VST/tools/build_port.sh" vst/vst.json'
+      host_test: 'cp wrapper/vst2_wrap.c "$MPC_VST/wrapper/vst2_wrap.c" && "$MPC_VST/tools/test_port.sh" vst/vst.json'
+      about: "DAVIS Spectral Sidechain: a one-band sidechain dynamic EQ."
+      plugin_id: spectral-sidechain
+      license: MIT
+      dry_run: ${{ inputs.dry_run }}
