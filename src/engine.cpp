@@ -41,9 +41,35 @@ static const float AMT_MIN = -600.0f, AMT_MAX = 300.0f;   /* AMOUNT, tenths of a
 static const float RATIO_FULL = 21.0f;         /* the Ratio knob's last position: FULL, the whole AMOUNT as soon as the SC is 6 dB over */
 static const int FFT_N = 4096;                 /* 10.8 Hz bins (interpolated below one bin a column) */
 static const int FFT_LOG = 12;
-static const int AN_BLOCKS = 80;
+#ifndef AN_CYCLE
+#define AN_CYCLE 80
+#endif
+static const int AN_BLOCKS = AN_CYCLE;   /* blocks per display read (128 samples each): 80 = ~232 ms */
 static const int SPEC_STEPS = 30;              /* the OUT spectrum: 2 dB a step, -66 .. -6 dBFS; 0 = nothing drawn */
-static const int SPEC_EVERY = 2;               /* one spectrum column per 2 graph columns (12 px) */
+#ifndef BAR_EVERY
+#define BAR_EVERY 2
+#endif
+static const int SPEC_EVERY = BAR_EVERY;               /* one spectrum column per 4 graph columns (24 px): half the screen traffic */
+static const int CURVE_EVERY = 2;              /* the band's curve: one column per 2 (12 px) */
+static const int WIN_N = 56;                   /* detector window: 56 sub-blocks of 16 = 20 ms, one period of a 50 Hz kick: even Rel 1 ms follows the hit, not the wave */
+static const float LIM_KNEE = 0.8f, LIM_CEIL = 0.97f;   /* while boosting: untouched up to -2 dBFS, then a soft knee to -0.3 dBFS */
+#ifndef BAR_HOLD_N
+#define BAR_HOLD_N 3
+#endif
+static const int BAR_HOLD = BAR_HOLD_N;                 /* SC view and OUT bars: a peak holds 3 reads (~0.7 s, ~4 reads a second) */
+#ifndef BAR_FALL_DB
+#define BAR_FALL_DB 1.5f
+#endif
+static const float BAR_FALL = BAR_FALL_DB;            /* then falls 3 dB a read (~13 dB/s): no strobe, and fewer redraws on MPC */
+static const int KICK_EVERY = BAR_EVERY;               /* one SC-view bar per 4 graph columns (24 px): half the bars OUT has, half the screen traffic */
+static const int KICK_HYST = 2;
+#ifndef BAR_HYST
+#define BAR_HYST 3
+#endif
+#ifndef BAR_SPLIT
+#define BAR_SPLIT 1
+#endif
+/* BAR_HYST: SC/OUT bars redrawn only when moved this many 2 dB steps; BAR_SPLIT: bars committed in N interleaved turns, one turn a read */                /* a bar is only redrawn when it moved 2 steps (4 dB), or to/from nothing: MPC handles every change */
 static const int OBUF = 4096;                  /* the output, mono, for the OUT spectrum */               /* the display work runs as a cycle of small steps, one per block (~232 ms) */
 
 struct Tap {
@@ -124,6 +150,15 @@ struct KD {
     float obuf[OBUF]; uint32_t opos = 0;       /* the output, mono, for that spectrum */
     float sdb[NCOL];                           /* each spectrum column's level, dB, smoothed */
     int spec[NCOL];                            /* and its step, as the skin draws it (0 = off) */
+    float kdb[NCOL];                           /* the SC's spectrum (SC view), dB, held then falling */
+    uint8_t khold[NCOL], shold[NCOL];          /* reads left before each SC view / OUT bar starts falling */
+    uint8_t kturn, sturn;                       /* BAR_SPLIT: which interleaved turn of SC view / OUT bars is redrawn this read */
+    int kick[NCOL];                            /* and its step, as the skin draws it (0 = nothing) */
+    int kick_on = 0;                           /* SC view: the SC's spectrum on the graph */
+    int kick_nz = 0;                           /* some kick step is drawn now */
+    float wmax[WIN_N] = {0}; int wpos = 0;     /* detector: the SC's peak in each of the last 56 sub-blocks (20 ms) */
+    float katk16 = 0, krel16 = 0;              /* Atk / Rel per 16-sample sub-block */
+    int live_still = 0, live_exact = 1;        /* live curve: calls with the gain still, and whether the exact pass was done */
     float peak_hz = 0, peak_mag = 0; int peak_age = 0;
     float pavg[FFT_N / 2];                     /* the SC's power per bin, averaged over the last ~2 s: the body that lasts wins over the click */   /* the SC's strongest frequency, held ~2 s so it does not jump between hits */
     float last_gdb = 1e9f, last_hz = -1, last_q = -1;   /* the bell's coefficients are recomputed only when these move */
@@ -140,8 +175,9 @@ static void update_curve(KD *p)
     float hz = pos_to_hz(p->freq), q = pos_to_q(p->qpos), amt = p->amount / 10.0f;
     AP a = allpass(hz, q);
     bool moved = false;
-    for (int c = 0; c < NCOL; ++c) {
-        float db = clampf(bell_db(a, amt, p->ctrig[c]), -CURVE_DB, CURVE_DB);
+    for (int c = 0; c < NCOL; c += CURVE_EVERY) {      /* one 12 px column per 2: half the repaints on MPC's screen thread */
+        float d0 = bell_db(a, amt, p->ctrig[c]), d1 = c + 1 < NCOL ? bell_db(a, amt, p->ctrig[c + 1]) : d0;
+        float db = clampf(fabsf(d1) > fabsf(d0) ? d1 : d0, -CURVE_DB, CURVE_DB);   /* the deeper of the two: the bell's tip stays */
         int v = (int)lrintf((db + CURVE_DB) / (2 * CURVE_DB) * CURVE_STEPS);      /* 0 = -30 dB .. 60 = +30 dB, 1 dB a step */
         if (v != p->col[c]) { p->col[c] = v; moved = true; }
     }
@@ -152,15 +188,20 @@ static void update_curve(KD *p)
 /* the live curve: the band at the gain applied right now (its shape follows Q), redrawn when the gain moved by 1 dB or more */
 static void update_live(KD *p)
 {
-    if (fabsf(p->gdb - p->live_gdb) < 1.0f && !(p->gdb == 0.0f && p->live_gdb != 0.0f)) return;
+    bool exact = false;
+    if (fabsf(p->gdb - p->live_gdb) < 1.0f && !(p->gdb == 0.0f && p->live_gdb != 0.0f)) {
+        if (p->live_exact || ++p->live_still < 8) return;    /* the gain held ~90 ms: one exact pass puts every column on its step */
+        exact = true; p->live_exact = 1;
+    } else { p->live_still = 0; p->live_exact = 0; }
     p->live_gdb = p->gdb;
     AP a = allpass(pos_to_hz(p->freq), pos_to_q(p->qpos));
     float g = powf(10.0f, p->gdb / 40.0f);
     bool moved = false;
-    for (int c = 0; c < NCOL; ++c) {
+    for (int c = 0; c < NCOL; c += RING_EVERY) {       /* only the drawn columns (l0, l2, ...) */
         int v = p->gdb == 0.0f ? LIVE_STEPS / 2
                                : (int)lrintf((clampf(bell_db_g(a, g, p->ctrig[c]), -CURVE_DB, CURVE_DB) + CURVE_DB) / (2 * CURVE_DB) * LIVE_STEPS);
-        if (v != p->live[c]) { p->live[c] = v; moved = true; }
+        int d = v - p->live[c];                           /* redrawn when it moved 2 steps (4 dB), or back to flat */
+        if (v != p->live[c] && (exact || v == LIVE_STEPS / 2 || d >= KICK_HYST || d <= -KICK_HYST)) { p->live[c] = v; moved = true; }
     }
     if (moved) ++p->display_rev;
 }
@@ -198,27 +239,26 @@ static void an_stage(KD *p, int st)                  /* butterfly stage st (0 ..
 }
 /* the SC's strongest frequency from its power averaged over the last few analyses (~2 s): a kick's body, which lasts, wins over
  * its short click; parabolic interpolation between bins. Returns true when the shown value moved. */
-static bool an_peak(KD *p)
-{
-    const float binhz = SR / FFT_N;
-    int lo = (int)(20.0f / binhz) + 1, hi = (int)(16000.0f / binhz), best = -1; float bm = 0, tot = 0;
-    for (int i = 1; i < FFT_N / 2; ++i) {
-        float m = p->fft_re[i] * p->fft_re[i] + p->fft_im[i] * p->fft_im[i];
-        p->pavg[i] += 0.15f * (m - p->pavg[i]);
-        if (i >= lo && i < hi) { tot += p->pavg[i]; if (p->pavg[i] > bm) { bm = p->pavg[i]; best = i; } }
-    }
-    float hz = 0;
-    if (best > 0 && tot > 1e-3f) {
-        float a = log10f(p->pavg[best - 1] + 1e-20f), b = log10f(bm + 1e-20f), c = log10f(p->pavg[best + 1] + 1e-20f);
-        float den = a - 2 * b + c, d = den != 0 ? clampf(0.5f * (a - c) / den, -0.5f, 0.5f) : 0;
-        hz = (best + d) * binhz;
-    }
-    bool moved = fabsf(hz - p->peak_hz) > 0.5f;
-    p->peak_hz = hz;
-    return moved;
-}
 /* the output's spectrum, one column per SPEC_EVERY graph columns: the loudest bin in its range (or the nearest bin below a
  * bin a column), fast up and slower down, as 2 dB steps. Returns true when a drawn step moved. */
+/* a bar's level: up at once to a new peak, held BAR_HOLD reads, then down BAR_FALL dB a read (never below now) */
+#ifndef KICK_HOLD_N
+#define KICK_HOLD_N 0
+#endif
+#ifndef KICK_FALL_DB
+#define KICK_FALL_DB 6.0f
+#endif
+#ifndef KICK_HYST_N
+#define KICK_HYST_N 3
+#endif
+/* the SC view follows each kick: no hold, 12 dB a read, so the bars are down before the next hit (~250 ms) */
+static inline float bar_level(float cur, float db, uint8_t &hold, int holdn = BAR_HOLD, float fall = BAR_FALL)
+{
+    if (db >= cur) { hold = (uint8_t)holdn; return db; }
+    if (hold > 0) { --hold; return cur; }
+    float f = cur - fall;
+    return f > db ? f : db;
+}
 static bool an_spec(KD *p)
 {
     bool moved = false;
@@ -239,16 +279,63 @@ static bool an_spec(KD *p)
             for (int i = b0; i < b1; ++i) { float v = pw(i); if (v > m) m = v; }
         }
         float db = 10.0f * log10f(m * norm * norm + 1e-12f);
-        p->sdb[c] = db > p->sdb[c] ? db : p->sdb[c] + 0.45f * (db - p->sdb[c]);   /* up at once, down over ~3 reads */
+        p->sdb[c] = bar_level(p->sdb[c], db, p->shold[c]);
     }
     for (int c = 0; c < NCOL; c += SPEC_EVERY) {        /* a light smoothing across columns, for the drawing only */
         float l = p->sdb[c > 0 ? c - SPEC_EVERY : c], r = p->sdb[c + SPEC_EVERY < NCOL ? c + SPEC_EVERY : c];
         float v = 0.5f * p->sdb[c] + 0.25f * (l + r);
         int k = (int)lrintf((clampf(v, -66.0f, -6.0f) + 66.0f) / 2.0f);
         if (k < 1) k = 1;                              /* on: always a line at the floor */
-        if (k != p->spec[c]) { p->spec[c] = k; moved = true; }
+        int d = k - p->spec[c];                        /* redrawn only when it moved 2 steps (4 dB), or from off */
+        if ((c / SPEC_EVERY) % BAR_SPLIT != p->sturn) continue;
+        if (k != p->spec[c] && (p->spec[c] == 0 || d >= BAR_HYST || d <= -BAR_HYST)) { p->spec[c] = k; moved = true; }
     }
+    p->sturn = (uint8_t)((p->sturn + 1) % BAR_SPLIT);
     return moved;
+}
+/* the SC's spectrum (SC view): the same columns as the output's, read from the SC's FFT: up at once, held, then
+ * falling (bar_level); silence draws nothing. Returns true when a drawn step moved. */
+static bool an_kick(KD *p)
+{
+    bool moved = false, any = false;
+    const float norm = 4.0f / FFT_N;
+    auto pw = [p](int i) { return p->fft_re[i] * p->fft_re[i] + p->fft_im[i] * p->fft_im[i]; };
+    for (int c = 0; c < NCOL; c += KICK_EVERY) {
+        int ce = c + KICK_EVERY - 1 < NCOL ? c + KICK_EVERY - 1 : NCOL - 1;
+        float f0 = p->cb0[c], f1 = p->cb1[ce], m = 0;
+        if (f1 - f0 < 1.5f) {
+            float fc = 0.5f * (f0 + f1); int i = (int)fc; float t = fc - i;
+            if (i < 1) { i = 1; t = 0; }
+            if (i >= FFT_N / 2 - 1) { i = FFT_N / 2 - 2; t = 1; }
+            m = (1 - t) * pw(i) + t * pw(i + 1);
+        } else {
+            int b0 = (int)f0, b1 = (int)ceilf(f1);
+            if (b0 < 1) b0 = 1;
+            if (b1 > FFT_N / 2) b1 = FFT_N / 2;
+            for (int i = b0; i < b1; ++i) { float v = pw(i); if (v > m) m = v; }
+        }
+        float db = 10.0f * log10f(m * norm * norm + 1e-12f);
+        p->kdb[c] = bar_level(p->kdb[c], db, p->khold[c], KICK_HOLD_N, KICK_FALL_DB);
+    }
+    for (int c = 0; c < NCOL; c += KICK_EVERY) {
+        float l = p->kdb[c > 0 ? c - KICK_EVERY : c], r = p->kdb[c + KICK_EVERY < NCOL ? c + KICK_EVERY : c];
+        float v = 0.5f * p->kdb[c] + 0.25f * (l + r);
+        int k = v <= -60.0f ? 0 : (int)lrintf((clampf(v, -66.0f, -6.0f) + 66.0f) / 2.0f);
+        if (k > 0) any = true;
+        int d = k - p->kick[c];
+        if ((c / KICK_EVERY) % BAR_SPLIT != p->kturn) continue;
+        if (k != p->kick[c] && (k == 0 || p->kick[c] == 0 || d >= KICK_HYST_N || d <= -KICK_HYST_N)) { p->kick[c] = k; moved = true; }
+    }
+    p->kick_nz = any ? 1 : 0;
+    p->kturn = (uint8_t)((p->kturn + 1) % BAR_SPLIT);
+    return moved;
+}
+static void kick_clear(KD *p)
+{
+    bool any = false;
+    for (int c = 0; c < NCOL; ++c) { if (p->kick[c]) any = true; p->kick[c] = 0; p->kdb[c] = -120.0f; }
+    p->kick_nz = 0;
+    if (any) ++p->display_rev;
 }
 static void spec_clear(KD *p)
 {
@@ -271,7 +358,7 @@ static void *create(const char *)
         p->cb0[c] = F_LO * powf(F_HI / F_LO, (c - 0.5f) / (NCOL - 1)) / (SR / FFT_N);
         p->cb1[c] = F_LO * powf(F_HI / F_LO, (c + 0.5f) / (NCOL - 1)) / (SR / FFT_N);
     }
-    for (int c = 0; c < NCOL; ++c) { p->spec[c] = 0; p->sdb[c] = -120.0f; }
+    for (int c = 0; c < NCOL; ++c) { p->spec[c] = 0; p->sdb[c] = -120.0f; p->kick[c] = 0; p->kdb[c] = -120.0f; p->khold[c] = p->shold[c] = 0; }
     for (int i = 0; i < OBUF; ++i) p->obuf[i] = 0;
     for (int c = 0; c < NCOL; ++c) { p->col_touched[c] = 0; p->ring[c] = 0; p->col[c] = CURVE_STEPS / 2; p->live[c] = LIVE_STEPS / 2; }
     return p;
@@ -293,6 +380,7 @@ static void set_param(void *inst, const char *key, const char *val)
     else if (!strcmp(key, "thresh")) { p->thresh = clampf(v, -60, 0); ++p->display_rev; }
     else if (!strcmp(key, "ratio")) { p->ratio = pos_to_ratio(v); ++p->display_rev; }
     else if (!strcmp(key, "out")) { int o = v >= 0.5f ? 1 : 0; if (o != p->out_on) { p->out_on = o; if (!o) spec_clear(p); ++p->display_rev; } }
+    else if (!strcmp(key, "scview")) { int o = v >= 0.5f ? 1 : 0; if (o != p->kick_on) { p->kick_on = o; if (!o) kick_clear(p); ++p->display_rev; } }
     else if (!strcmp(key, "attack")) { p->attack = clampf(v, 0, 100); }
     else if (!strcmp(key, "release")) { p->release = clampf(v, 0, 100); }
     else if (key[0] == 'c' && key[1] >= '0' && key[1] <= '9') {
@@ -324,6 +412,16 @@ static int get_param(void *inst, const char *key, char *buf, int len)
 {
     KD *p = static_cast<KD *>(inst);
     if (!p || !key || !buf || len <= 0) return 0;
+    if (key[1] >= '0' && key[1] <= '9') {      /* the graph's columns first: ~300 of them, read every 100 ms with the audio waiting */
+        int c = atoi(key + 1);
+        if (c >= 0 && c < NCOL) switch (key[0]) {
+            case 'c': return snprintf(buf, (size_t)len, "%d", p->col[c]);
+            case 'l': return snprintf(buf, (size_t)len, "%d", p->live[c]);
+            case 'h': return snprintf(buf, (size_t)len, "%d", p->ring[c]);
+            case 's': return snprintf(buf, (size_t)len, "%d", p->spec[c]);
+            case 'k': return snprintf(buf, (size_t)len, "%d", p->kick[c]);
+        }
+    }
     if (!strcmp(key, "state"))
         return snprintf(buf, (size_t)len, "kd2 %d %d %g %g %g %g %g %g %g %d", p->mode, p->chan, p->freq, p->qpos, p->amount, p->thresh, p->attack, p->release, p->ratio, p->out_on);
     if (!strcmp(key, "display_rev")) return snprintf(buf, (size_t)len, "%u", p->display_rev);
@@ -339,6 +437,8 @@ static int get_param(void *inst, const char *key, char *buf, int len)
     if (!strcmp(key, "release")) return snprintf(buf, (size_t)len, "%g", p->release);
     if (!strcmp(key, "out")) return snprintf(buf, (size_t)len, "%d", p->out_on);
     if (key[0] == 's' && key[1] >= '0' && key[1] <= '9') { int c = atoi(key + 1); return c >= 0 && c < NCOL ? snprintf(buf, (size_t)len, "%d", p->spec[c]) : 0; }
+    if (!strcmp(key, "scview")) return snprintf(buf, (size_t)len, "%d", p->kick_on);
+    if (key[0] == 'k' && key[1] >= '0' && key[1] <= '9') { int c = atoi(key + 1); return c >= 0 && c < NCOL ? snprintf(buf, (size_t)len, "%d", p->kick[c]) : 0; }
     if (!strcmp(key, "link")) return snprintf(buf, (size_t)len, "%d", p->link);
     if (!strcmp(key, "gr")) return snprintf(buf, (size_t)len, "%d", (int)lrintf(p->gdb * 10.0f));
     if (!strcmp(key, "peak")) return snprintf(buf, (size_t)len, "%g", p->peak_hz > 0 ? clampf(1000.0f * logf(p->peak_hz / F_LO) / logf(F_HI / F_LO), 0, 1000) : 0.0f);
@@ -355,9 +455,9 @@ static int get_param(void *inst, const char *key, char *buf, int len)
         return snprintf(buf, (size_t)len, "%.2f kHz", hz / 1000.0f);
     }
     if (!strcmp(key, "q_display")) return snprintf(buf, (size_t)len, "%.2f", pos_to_q(p->qpos));
-    if (!strcmp(key, "amount_display")) return p->amount <= AMT_MIN + 5 ? snprintf(buf, (size_t)len, "CUT") : snprintf(buf, (size_t)len, "%+.1f dB", p->amount / 10.0f);
+    if (!strcmp(key, "amount_display")) return snprintf(buf, (size_t)len, "%+.1f dB", p->amount / 10.0f);
     if (!strcmp(key, "thresh_display")) return snprintf(buf, (size_t)len, "%d dB", (int)p->thresh);
-    if (!strcmp(key, "ratio_display")) return p->ratio >= RATIO_FULL - 0.5f ? snprintf(buf, (size_t)len, "FULL") : snprintf(buf, (size_t)len, "%.1f:1", p->ratio);
+    if (!strcmp(key, "ratio_display")) return snprintf(buf, (size_t)len, "%.1f:1", p->ratio);
     if (!strcmp(key, "attack_display")) { float ms = pos_to_ms(p->attack); return snprintf(buf, (size_t)len, ms < 10 ? "%.1f ms" : "%.0f ms", (double)ms); }
     if (!strcmp(key, "release_display")) { float ms = pos_to_ms(p->release); return snprintf(buf, (size_t)len, ms < 10 ? "%.1f ms" : "%.0f ms", (double)ms); }
     if (!strcmp(key, "gr_display")) return snprintf(buf, (size_t)len, "%+.1f dB", p->gdb);
@@ -376,6 +476,7 @@ static void run(KD *p, const float *in, float *out, int frames)
 
     if (p->mode == 1) {                                   /* SEND: pass through, copy into the tap */
         if (p->spec[0] || p->spec[2]) spec_clear(p);
+        if (p->kick_nz) kick_clear(p);
         uint32_t w = tap.wpos.load(std::memory_order_relaxed);
         for (int i = 0; i < frames; ++i) {
             out[2 * i] = in[2 * i]; out[2 * i + 1] = in[2 * i + 1];
@@ -399,54 +500,62 @@ static void run(KD *p, const float *in, float *out, int frames)
     }
     if (p->curve_dirty) { p->curve_dirty = false; update_curve(p); p->live_gdb = 1e9f; }
     {   /* the display cycle, one small step a block: the SC's FFT (load, 12 stages), then its strongest frequency */
-        const int SC0 = 0, IN0 = SC0 + FFT_LOG + 2;
+        const int SC0 = 0;
         int st = p->an_step;
         if (++p->an_step >= AN_BLOCKS) p->an_step = 0;
         /* only the SC's strongest frequency is shown (no live spectra): one FFT per cycle, spread over the blocks */
-        if (st == SC0) { if (link) an_load(p, tap.buf, tap.wpos.load(std::memory_order_acquire)); }
-        else if (st > SC0 && st <= SC0 + FFT_LOG) { if (link) an_stage(p, st - SC0 - 1); }
-        else if (st == SC0 + FFT_LOG + 1) {
-            bool moved = false;
-            if (link) moved = an_peak(p);
-            else if (p->peak_hz != 0) { p->peak_hz = 0; for (int i = 0; i < FFT_N / 2; ++i) p->pavg[i] = 0; moved = true; }
-            if (moved) ++p->display_rev;
+        /* the SC's FFT only feeds the SC view now (SC peak / TO FREQ are gone): nothing at all runs while it is off */
+        const bool kick = link && p->kick_on;
+#ifndef KICK_TWICE
+#define KICK_TWICE 1
+#endif
+        /* KICK_TWICE: the SC view is read twice a cycle (~116 ms) at blocks 0 and 40, OUT once at block 20: they share
+         * the FFT buffers and never overlap (each takes 14 blocks) */
+        const int sst = KICK_TWICE ? st % (AN_BLOCKS / 2) : st;
+        const int ost = KICK_TWICE ? (st >= AN_BLOCKS / 4 && st < AN_BLOCKS / 2 ? st - AN_BLOCKS / 4 : -1) : (st >= AN_BLOCKS / 2 ? st - AN_BLOCKS / 2 : -1);
+        if (sst == SC0) { if (kick) an_load(p, tap.buf, tap.wpos.load(std::memory_order_acquire)); }
+        else if (sst > SC0 && sst <= SC0 + FFT_LOG) { if (kick) an_stage(p, sst - SC0 - 1); }
+        else if (sst == SC0 + FFT_LOG + 1) {
+            if (kick) { if (an_kick(p)) ++p->display_rev; }
+            else if (p->kick_nz) kick_clear(p);                              /* off, or no SC: nothing drawn */
         }
-        /* OUT: the output's spectrum twice a cycle (~8 times a second), the same FFT buffers after the SC is done with them */
+        /* OUT: the output's spectrum once a cycle (~4 times a second), half a cycle after the SC view, so the two graphs
+         * are not repainted in the same screen read */
         else if (p->out_on) {
-            const int half = AN_BLOCKS / 2;                                 /* the second pass starts half a cycle on */
-            int o = st >= half ? st - half : st - IN0;
+            int o = ost;
             if (o == 0) an_load(p, p->obuf, p->opos, OBUF - 1);
             else if (o > 0 && o <= FFT_LOG) an_stage(p, o - 1);
             else if (o == FFT_LOG + 1) { if (an_spec(p)) ++p->display_rev; }
         }
     }
     if ((p->an_step & 3) == 0) update_ring(p);                            /* the live dot, ~86 times a second (cheap: 1 or 2 values move) */
-    if ((p->an_step & 3) == 2) update_live(p);                            /* the live curve: only when the gain moved 1 dB (the screen reads ~10 times a second) */
+    if ((p->an_step & 3) == 2) update_live(p);                            /* the live curve: when the gain moved 1 dB; a column only moves 4 dB at a time */
 
     if (p->attack != p->last_atk || p->release != p->last_rel) {   /* envelope: only when Atk or Rel move */
         p->katk = expf(-1.0f / (0.001f * pos_to_ms(p->attack) * SR)); p->krel = expf(-1.0f / (0.001f * pos_to_ms(p->release) * SR));
+        p->katk16 = powf(p->katk, 16.0f); p->krel16 = powf(p->krel, 16.0f);
         p->last_atk = p->attack; p->last_rel = p->release;
     }
-    const float atk = p->katk, rel = p->krel, amt = p->amount / 10.0f;
+    const float amt = p->amount / 10.0f;
     static const int SUB = 16;
     static const float glide = 1.0f - expf(-(float)SUB / (0.005f * SR));
     const float hz = pos_to_hz(p->freq), q = pos_to_q(p->qpos);   /* two powf a block: cheap next to the rest */
-    if (hz != p->last_hz || q != p->last_q) {            /* detector band-pass and the bell's allpass: only when FREQ or Q move */
-        const float dw = 2.0f * (float)M_PI * hz / SR, dal = sinf(dw) / (2.0f * q), da0 = 1.0f + dal;
-        p->db0 = dal / da0; p->da1 = -2.0f * cosf(dw) / da0; p->da2 = (1.0f - dal) / da0;
+    if (hz != p->last_hz || q != p->last_q) {            /* the bell's allpass: only when FREQ or Q move */
         p->ap = allpass(hz, q);
         p->last_hz = hz; p->last_q = q;
     }
-    const float db0 = p->db0, da1 = p->da1, da2 = p->da2;
 
     for (int i0 = 0; i0 < frames; i0 += SUB) {
         int n = frames - i0 < SUB ? frames - i0 : SUB;
-        /* the detector listens to the SC through the same band as the bell (band-pass at FREQ and Q) */
-        for (int j = 0; j < n; ++j) {                       /* detector, one sample at a time */
-            float k = link ? tap.buf[(p->rpos + (uint32_t)(i0 + j)) & (RING - 1)] : 0.0f;
-            float yb = db0 * k + p->dz1; p->dz1 = -da1 * yb + p->dz2; p->dz2 = -db0 * k - da2 * yb;
-            float lv = fabsf(yb);
-            p->env = lv + (lv > p->env ? atk : rel) * (p->env - lv);
+        /* the detector listens to the whole SC, wherever the kick is (its 50 Hz), and the bell acts wherever FREQ is (a
+         * hi-hat's 8 kHz): as TB Equalizer does. It used to listen through the bell's band, where a kick has almost
+         * nothing at 8 kHz, so a boost there fluttered on the click's noise and chirped. */
+        {   /* detector: the SC's peak over the last 20 ms (a sliding max of sub-block peaks), then Atk / Rel on that */
+            float m = 0.0f;
+            if (link) for (int j = 0; j < n; ++j) { float v = fabsf(tap.buf[(p->rpos + (uint32_t)(i0 + j)) & (RING - 1)]); if (v > m) m = v; }
+            p->wmax[p->wpos] = m; if (++p->wpos >= WIN_N) p->wpos = 0;
+            float w = 0.0f; for (int t = 0; t < WIN_N; ++t) if (p->wmax[t] > w) w = p->wmax[t];
+            p->env = w + (w > p->env ? p->katk16 : p->krel16) * (p->env - w);
         }
         float edb = 20.0f * log10f(p->env > 1e-6f ? p->env : 1e-6f);
         float over = edb - p->thresh; if (over < 0.0f) over = 0.0f;       /* dB above the threshold */
@@ -473,6 +582,10 @@ static void run(KD *p, const float *in, float *out, int frames)
             float bl = k2 * ml + p->zl3; p->zl3 = b1 * ml - b1 * bl + p->zl4; p->zl4 = ml - k2 * bl;
             float br = k2 * mr + p->zr3; p->zr3 = b1 * mr - b1 * br + p->zr4; p->zr4 = mr - k2 * br;
             float yl = 0.5f * ((ml + bl) + g * (ml - bl)), yr = 0.5f * ((mr + br) + g * (mr - br));
+            if (g > 1.0001f) {   /* only while boosting: what the plugin adds never passes 0 dBFS; anything else keeps the float headroom */
+                if (fabsf(yl) > LIM_KNEE) yl = copysignf(LIM_KNEE + (LIM_CEIL - LIM_KNEE) * tanhf((fabsf(yl) - LIM_KNEE) / (LIM_CEIL - LIM_KNEE)), yl);
+                if (fabsf(yr) > LIM_KNEE) yr = copysignf(LIM_KNEE + (LIM_CEIL - LIM_KNEE) * tanhf((fabsf(yr) - LIM_KNEE) / (LIM_CEIL - LIM_KNEE)), yr);
+            }
             out[idx] = yl; out[idx + 1] = yr;
             if (p->out_on) p->obuf[(p->opos + (uint32_t)(i0 + j)) & (OBUF - 1)] = 0.5f * (yl + yr);
         }

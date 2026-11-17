@@ -23,11 +23,14 @@ RING_EVERY = 2
 PLOT_X, PLOT_Y, PLOT_H = 92, 134, 200
 CURVE_STEPS, RING_STEPS, LIVE_STEPS, SPEC_STEPS = 60, 30, 30, 30
 OUT_BTN = (686, 122, 104, 42)                            # OUT, the graph screen's top right corner (skin x, y, w, h)
+SC_BTN = (OUT_BTN[0] - 104 - 12, OUT_BTN[1], 104, 42)    # SC view, just left of OUT: shows the kick's spectrum behind the curves
 F_LO, F_HI = 15.0, 20000.0
 FRAMES = 128
 KNOB_R = 27
 KNOB_DY = -11                                            # knob centre below the cell centre
 LIVE_W = COL_W * RING_EVERY
+KICK_EVERY = int(os.environ.get("KD_BAR_EVERY", "2"))   # SC view and OUT: one bar per N columns (the engine's KICK_EVERY / SPEC_EVERY)
+KICK_W = COL_W * KICK_EVERY
 RING_W, RING_H = 28, PLOT_H + 28                     # the ring meters sit on every 2nd column (a 12 px grid)
 SC, IN, ORANGE, RED = "#4fb89d", "#8a7bd0", "#f0a030", "#b8432f"
 PAGE, CELL, DARK, INK_D = "#c9c8bf", "#d6d5cd", "#14171c", "#26292e"
@@ -40,15 +43,15 @@ def meter(key, strip, cx, cy, w, h, frames, Ysk):
 # ---------------------------------------------------------------- parameters
 def params():
     P = [
-        {"key": "mode", "name": "Mode", "options": ["RECEIVE", "SEND"], "default": "RECEIVE", "qlink_ticks": 1},
+        {"key": "mode", "name": "MODE", "options": ["RECEIVE", "SEND"], "default": "RECEIVE", "qlink_ticks": 1},
         {"key": "chan", "name": "Chan", "options": ["A", "B", "C", "D"], "default": "A", "qlink_ticks": 3},
-        {"key": "freq", "name": "Freq", "min": 0, "max": 1000, "default": 193, "dynamic_display": True},
+        {"key": "freq", "name": "FREQ", "min": 0, "max": 1000, "default": 193, "dynamic_display": True},
         {"key": "q", "name": "Q", "min": 0, "max": 100, "default": 55, "dynamic_display": True},
-        {"key": "ratio", "name": "Ratio", "min": 1, "max": 21, "default": 4, "dynamic_display": True},
-        {"key": "thresh", "name": "Thresh", "min": -60, "max": 0, "default": -20, "dynamic_display": True},
-        {"key": "attack", "name": "Atk", "min": 0, "max": 100, "default": 18, "dynamic_display": True},
-        {"key": "release", "name": "Rel", "min": 0, "max": 100, "default": 81, "dynamic_display": True},
-        {"key": "amount", "name": "Amount", "min": -600, "max": 300, "default": -90, "dynamic_display": True},
+        {"key": "ratio", "name": "RATIO", "min": 1, "max": 21, "default": 4, "dynamic_display": True},
+        {"key": "thresh", "name": "THRESH", "min": -60, "max": 0, "default": -20, "dynamic_display": True},
+        {"key": "attack", "name": "ATK", "min": 0, "max": 100, "default": 18, "dynamic_display": True},
+        {"key": "release", "name": "REL", "min": 0, "max": 100, "default": 81, "dynamic_display": True},
+        {"key": "amount", "name": "AMOUNT", "min": -600, "max": 300, "default": -90, "dynamic_display": True},
         {"key": "gr", "name": "GR", "min": -300, "max": 300, "default": 0, "dynamic_display": True},
         {"key": "link", "name": "SC", "options": ["NO SC", "SC OK"], "default": "NO SC"},
         {"key": "noop", "name": "-", "momentary": True},
@@ -59,7 +62,9 @@ def params():
     P += [{"key": "h%d" % i, "name": "Ring %d" % (i + 1), "min": 0, "max": RING_STEPS + 1, "default": 0} for i in range(0, NCOL, RING_EVERY)]
     LIVE = [{"key": "l%d" % i, "name": "Live %d" % (i + 1), "min": 0, "max": LIVE_STEPS, "default": LIVE_STEPS // 2} for i in range(0, NCOL, RING_EVERY)]
     OUT = [{"key": "out", "name": "Out", "options": ["OFF", "ON"], "default": "OFF"}]
-    OUT += [{"key": "s%d" % i, "name": "Spec %d" % (i + 1), "min": 0, "max": SPEC_STEPS, "default": 0} for i in range(0, NCOL, RING_EVERY)]
+    OUT += [{"key": "s%d" % i, "name": "Spec %d" % (i + 1), "min": 0, "max": SPEC_STEPS, "default": 0} for i in range(0, NCOL, KICK_EVERY)]
+    OUT += [{"key": "scview", "name": "SC view", "options": ["OFF", "ON"], "default": "OFF"}]
+    OUT += [{"key": "k%d" % i, "name": "Kick %d" % (i + 1), "min": 0, "max": SPEC_STEPS, "default": 0} for i in range(0, NCOL, KICK_EVERY)]
     return P + TAIL + LIVE + OUT       # new params only at the end: saved projects bind by index
 
 
@@ -102,19 +107,24 @@ def render(items):
         os.remove(tmp)
 
 
+CURVE = os.environ.get("KD_CURVE", "#ffd60a")                # the band curve's colour (yellow); KD_CURVE=#rrggbb to try another
+
+
 def curve_strip(w, h):
     """the band's curve, one 6 px column: CURVE_STEPS + 1 frames (0 = -30 dB at the bottom .. top = +30 dB, 1 dB a step):
-    a thin orange line at the level and a faint fill to 0 dB (a stepped line: light on the MPC)"""
+    a thin red line at the level and a faint fill to 0 dB (a stepped line: light on the MPC)"""
     n = CURVE_STEPS + 1
     o = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d">' % (w, h * n)]
     for k in range(n):
         top = k * h
         y = top + 2.5 + (h - 5) * (1 - k / (n - 1))
         mid = top + h / 2
+        if CURVE == "none":
+            continue                                             # KD_CURVE=none: no line, for the previews' masks
         if abs(y - mid) > 1:
             a, b = sorted((mid, y))
-            o.append('<rect x="0" y="%.2f" width="%d" height="%.2f" fill="%s" opacity=".10"/>' % (a, w, b - a, ORANGE))
-        o.append('<rect x="-.6" y="%.2f" width="%g" height="1.8" rx=".9" fill="%s"/>' % (y - .9, w + 1.2, ORANGE))
+            o.append('<rect x="0" y="%.2f" width="%d" height="%.2f" fill="%s" opacity=".10"/>' % (a, w, b - a, CURVE))
+        o.append('<rect x="-.6" y="%.2f" width="%g" height="2" rx="1" fill="%s"/>' % (y - 1, w + 1.2, CURVE))
     o.append("</svg>")
     return "".join(o), w, h * n
 
@@ -130,32 +140,55 @@ def live_strip():
         mid = top + h / 2
         if k != LIVE_STEPS // 2:
             a, b = sorted((mid, y))
-            o.append('<rect x="0" y="%.2f" width="%d" height="%.2f" fill="%s" opacity=".42"/>' % (a, w, b - a, RED))
-            o.append('<rect x="0" y="%.2f" width="%d" height="1.6" fill="%s" opacity=".75"/>' % (y - .8, w, RED))
+            o.append('<rect x="0" y="%.2f" width="%d" height="%.2f" fill="%s" opacity=".70"/>' % (a, w, b - a, RED))
+            o.append('<rect x="0" y="%.2f" width="%d" height="1.6" fill="%s" opacity=".95"/>' % (y - .8, w, RED))
     o.append("</svg>")
     return "".join(o), w, h * n
 
 
 def spec_strip():
     """the output's spectrum (OUT), one 12 px column: SPEC_STEPS + 1 frames, 0 = nothing; frame k = -66 + 2k dBFS over the
-    graph's height (its own scale, not the +-30 dB of the curves): a soft blue-grey fill from the bottom and a light line"""
-    w, h, n = LIVE_W, PLOT_H, SPEC_STEPS + 1
+    graph's height (its own scale, not the +-30 dB of the curves): a soft green fill from the bottom and a light line"""
+    w, h, n = KICK_W, PLOT_H, SPEC_STEPS + 1
     o = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d">' % (w, h * n)]
     for k in range(1, n):
         top = k * h
         y = top + 2.5 + (h - 5) * (1 - k / (n - 1))
-        o.append('<rect x="0" y="%.2f" width="%d" height="%.2f" fill="#96b4cd" opacity=".22"/>' % (y, w, top + h - y))
-        o.append('<rect x="0" y="%.2f" width="%d" height="2" fill="#b9d2e6" opacity=".68"/>' % (y - 1, w))
+        o.append('<rect x="1" y="%.2f" width="%d" height="%.2f" fill="#97C459" opacity=".45"/>' % (y, w - 2, top + h - y))
+        o.append('<rect x="1" y="%.2f" width="%d" height="2" fill="#C0DD97" opacity=".90"/>' % (y - 1, w - 2))
+    o.append("</svg>")
+    return "".join(o), w, h * n
+
+
+def kick_strip():
+    """the SC's spectrum (SC view), one 12 px column, the same frames as OUT: a grey fill from the bottom, drawn behind
+    everything, so the kick's body reads as the ground the band works on. Frame 0 = nothing (silence)"""
+    w, h, n = KICK_W, PLOT_H, SPEC_STEPS + 1
+    o = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d">' % (w, h * n)]
+    for k in range(1, n):
+        top = k * h
+        y = top + 2.5 + (h - 5) * (1 - k / (n - 1))
+        o.append('<rect x="1" y="%.2f" width="%d" height="%.2f" fill="#888780" opacity=".42"/>' % (y, w - 2, top + h - y))
+        o.append('<rect x="1" y="%.2f" width="%d" height="2" fill="#B4B2A9" opacity=".60"/>' % (y - 1, w - 2))
     o.append("</svg>")
     return "".join(o), w, h * n
 
 
 def out_btn(on):
-    """OUT: a small pill, red and lit when on, dark with a grey label when off"""
+    """OUT: a small pill, green and lit when on, dark with a grey label when off"""
     w, h = OUT_BTN[2], OUT_BTN[3]
-    fill, edge, ink = (RED, "#d9644d", "#f6f2ea") if on else ("#22262c", "#3a3f46", "#8b9097")
+    fill, edge, ink = ("#3B6D11", "#639922", "#EAF3DE") if on else ("#1d2a16", "#3B6D11", "#97C459")
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d"><rect x=".5" y=".5" width="%d" height="%d" rx="11" fill="%s" stroke="%s"/>'
             '<text x="%g" y="%g" text-anchor="middle" font-family="Jost" font-weight="600" font-size="21" fill="%s">OUT</text></svg>'
+            % (w, h, w - 1, h - 1, fill, edge, w / 2, h / 2 + 7, ink)), w, h
+
+
+def sc_btn(on):
+    """SC view: a small pill like OUT, grey and lit when the kick's spectrum is on, dark with a grey label when off"""
+    w, h = SC_BTN[2], SC_BTN[3]
+    fill, edge, ink = ("#5F5E5A", "#888780", "#F1EFE8") if on else ("#2a2a28", "#5F5E5A", "#B4B2A9")
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d"><rect x=".5" y=".5" width="%d" height="%d" rx="11" fill="%s" stroke="%s"/>'
+            '<text x="%g" y="%g" text-anchor="middle" font-family="Jost" font-weight="600" font-size="21" fill="%s">SC</text></svg>'
             % (w, h, w - 1, h - 1, fill, edge, w / 2, h / 2 + 7, ink)), w, h
 
 
@@ -264,8 +297,8 @@ COLS_X = (885, 1030, 1175)                               # the knob cells' centr
 ROWS_Y = (201, 381)
 CELL_W, CELL_H = 130, 170
 STATUS_BOX = (820, 476, 420, 142)                        # mode, channel, GR, SC
-KNOBS = [("Q", "q", "0.1", "8", 0, 0), ("Ratio", "ratio", "1:1", "FULL", 1, 0), ("Thresh", "thresh", "-60", "0 dB", 2, 0),
-         ("Atk", "attack", "1ms", "500ms", 0, 1), ("Rel", "release", "1ms", "500ms", 1, 1), ("Amount", "amount", "CUT", "+30", 2, 1)]
+KNOBS = [("Q", "q", "0.1", "8", 0, 0), ("Ratio", "ratio", "1:1", "21:1", 1, 0), ("Thresh", "thresh", "-60 dB", "0 dB", 2, 0),
+         ("Atk", "attack", "1 ms", "500 ms", 0, 1), ("Rel", "release", "1 ms", "500 ms", 1, 1), ("Amount", "amount", "-60 dB", "+30 dB", 2, 1)]
 
 
 def txt(x, y, t, size=14, fill="#26292e", anchor="start", weight=400):
@@ -341,7 +374,7 @@ def press_png():
 # the graph's touch plates (skin x0, y0, x1, y1): one left of OUT, full height, one under OUT; together they cover the graph
 # screen but OUT itself, so nothing overlaps
 _GX0, _GY0, _GX1, _GY1 = GRAPH_BOX[0] + 8, GRAPH_BOX[1] + 4, GRAPH_BOX[0] + GRAPH_BOX[2] - 4, GRAPH_BOX[1] + GRAPH_BOX[3] - 4
-SHIELDS = [(_GX0, _GY0, OUT_BTN[0] - 2, _GY1), (OUT_BTN[0] - 2, OUT_BTN[1] + OUT_BTN[3] + 2, _GX1, _GY1)]
+SHIELDS = [(_GX0, _GY0, SC_BTN[0] - 2, _GY1), (SC_BTN[0] - 2, SC_BTN[1] + SC_BTN[3] + 2, _GX1, _GY1)]
 
 
 def shield_png(i):
@@ -443,9 +476,13 @@ def layout():
           'readout cx=%d cy=%d w=130 h=36 box=0 tsize=22 tcolor=26292e label="SC" key=link' % (bx + 320, by + 106 + Y), ""]
     cy = PLOT_Y + PLOT_H // 2 + Y
     colx = lambda c: PLOT_X + c * COL_W + COL_W // 2
+    L += ["# SC view: the kick's spectrum, the ground behind everything (only while the SC button is on: the engine draws nothing else)"]
+    for c in range(0, NCOL, KICK_EVERY):
+        L.append(meter("k%d" % c, "kick_col.png", PLOT_X + c * COL_W + KICK_W // 2, cy, KICK_W, PLOT_H, SPEC_STEPS + 1, Y))
+    L += [""]
     L += ["# OUT: the output's spectrum, under everything else, and its switch in the graph's corner"]
-    for c in range(0, NCOL, RING_EVERY):
-        L.append(meter("s%d" % c, "spec_col.png", PLOT_X + c * COL_W + COL_W, cy, LIVE_W, PLOT_H, SPEC_STEPS + 1, Y))
+    for c in range(0, NCOL, KICK_EVERY):
+        L.append(meter("s%d" % c, "spec_col.png", PLOT_X + c * COL_W + KICK_W // 2, cy, KICK_W, PLOT_H, SPEC_STEPS + 1, Y))
     L += [""]
     L += ["# the live curve (semi-transparent red): the bell's shape at the gain applied now, under everything else"]
     for c in range(0, NCOL, RING_EVERY):
@@ -454,18 +491,18 @@ def layout():
     for c in range(0, NCOL, RING_EVERY):
         L.append(meter("h%d" % c, "ring.png", colx(c), cy, RING_W, RING_H, RING_STEPS + 2, Y))
     L += ["", "# the band's curve at full Amount, 1 dB a step. A touch on a column moves the band: across = Freq, height = Amount"]
-    for c in range(NCOL):
-        L.append(meter("c%d" % c, "curve_col.png", colx(c), cy, COL_W, PLOT_H, CURVE_STEPS + 1, Y))
+    for c in range(0, NCOL, RING_EVERY):    # the band's curve: one 12 px column per 2 (the engine's CURVE_EVERY), half the repaints
+        L.append(meter("c%d" % c, "curve_col.png", PLOT_X + c * COL_W + COL_W, cy, LIVE_W, PLOT_H, CURVE_STEPS + 1, Y))
     ox, oy, ow, oh = OUT_BTN
     L += ["", "# the graph is for looking only (Freq slider and knobs set the band): a clear plate over it takes any touch (noop)",
           ] + ['button cx=%d cy=%d w=%d h=%d label="" key=noop img=images/shield%d.png img_on=images/shield%d.png' % (
               (x0 + x1) // 2, (y0 + y1) // 2 + Y, x1 - x0, y1 - y0, i, i) for i, (x0, y0, x1, y1) in enumerate(SHIELDS)]
-    L += ["", "# OUT, over everything in the graph's corner",
+    sx_, sy_, sw_, sh_ = SC_BTN
+    L += ["", "# SC view and OUT, over everything in the graph's corner",
+          'toggle cx=%d cy=%d label="" key=scview ns=0 w=%d h=%d img=images/sc_off.png img_on=images/sc_on.png' % (sx_ + sw_ // 2, sy_ + sh_ // 2 + Y, sw_, sh_),
           'toggle cx=%d cy=%d label="" key=out ns=0 w=%d h=%d img=images/out_off.png img_on=images/out_on.png' % (ox + ow // 2, oy + oh // 2 + Y, ow, oh)]
     sx, sy, sw, sh = SL_BOX
-    L += ["", "# Freq: SC peak and TO FREQ on the title row, the value at the right, a big slider below",
-          'readout cx=%d cy=%d w=230 h=40 box=0 tsize=22 tcolor=b8432f label="SC peak" key=peak' % (sx + 290, TITLE_CY + Y),
-          'button cx=%d cy=%d w=%d h=%d label="" key=snap img=images/clear.png img_on=images/press.png' % (SNAP[0], SNAP[1] + Y, SNAP[2], SNAP[3]),
+    L += ["", "# Freq: the value at the right of the title row, a big slider below (the band is set by the slider and knobs only)",
           'readout cx=%d cy=%d w=180 h=40 box=0 tsize=26 tcolor=26292e label="Freq" key=freq' % (sx + sw - 110, TITLE_CY + Y),
           'slider_h cx=%d cy=%d w=%d h=%d ns=0 vs=0 strip=images/slider.png frames=%d label="Freq" key=freq' % (SL_CX, SL_CY + Y, SL_W, SL_H, SL_FRAMES), "",
           "# knobs: name and range are in the background, the live value under the knob"]
@@ -489,7 +526,7 @@ def main():
     json.dump(VST_JSON, open(os.path.join(VST, "vst.json"), "w"), indent=2)
     open(os.path.join(VST, "artwork", "bg.svg"), "w").write(background() + "\n")
     items = []
-    for name, svg in (("curve_col", curve_strip(COL_W, PLOT_H)), ("ring", ring_strip()), ("live_col", live_strip()), ("spec_col", spec_strip()), ("out_on", out_btn(True)), ("out_off", out_btn(False)),
+    for name, svg in (("curve_col", curve_strip(LIVE_W, PLOT_H)), ("ring", ring_strip()), ("live_col", live_strip()), ("spec_col", spec_strip()), ("kick_col", kick_strip()), ("out_on", out_btn(True)), ("out_off", out_btn(False)), ("sc_on", sc_btn(True)), ("sc_off", sc_btn(False)),
                       ("slider", slider_strip()), ("clear", clear_png()), ("shield0", shield_png(0)), ("shield1", shield_png(1)), ("press", press_png()), ("knob_r%d" % (KNOB_R + 8), knob_strip(KNOB_R))):
         items.append((os.path.join(IMG, name + ".png"), *svg))
     items.append((os.path.join(VST, "artwork", "dim.png"), *dim_png()))

@@ -33,7 +33,9 @@ for line in open(os.path.join(VST, "layout.conf")).read().splitlines():
         bg.alpha_composite(Image.open(os.path.join(VST, f)).convert("RGBA"), (0, 0)); continue
     if kind == "toggle":
         cx, cy = int(g("cx")), int(g("cy")) - Y
-        im = strip("out_on.png" if os.environ.get("KD_OUTON") else "out_off.png")
+        nm = "sc" if g("key") == "scview" else "out"
+        on = os.environ.get("KD_SCON" if nm == "sc" else "KD_OUTON")
+        im = strip("%s_%s.png" % (nm, "on" if on else "off"))
         bg.alpha_composite(im, (cx - im.width // 2, cy - im.height // 2)); continue
     if kind not in ("meter", "slider_h", "knob", "readout", "button", "enum_h"): continue
     cx, cy, key = int(g("cx")), int(g("cy")) - Y, g("key")

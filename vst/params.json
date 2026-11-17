@@ -2,7 +2,7 @@
  "params": [
   {
    "key": "mode",
-   "name": "Mode",
+   "name": "MODE",
    "options": [
     "RECEIVE",
     "SEND"
@@ -24,7 +24,7 @@
   },
   {
    "key": "freq",
-   "name": "Freq",
+   "name": "FREQ",
    "min": 0,
    "max": 1000,
    "default": 193,
@@ -40,7 +40,7 @@
   },
   {
    "key": "ratio",
-   "name": "Ratio",
+   "name": "RATIO",
    "min": 1,
    "max": 21,
    "default": 4,
@@ -48,7 +48,7 @@
   },
   {
    "key": "thresh",
-   "name": "Thresh",
+   "name": "THRESH",
    "min": -60,
    "max": 0,
    "default": -20,
@@ -56,7 +56,7 @@
   },
   {
    "key": "attack",
-   "name": "Atk",
+   "name": "ATK",
    "min": 0,
    "max": 100,
    "default": 18,
@@ -64,7 +64,7 @@
   },
   {
    "key": "release",
-   "name": "Rel",
+   "name": "REL",
    "min": 0,
    "max": 100,
    "default": 81,
@@ -72,7 +72,7 @@
   },
   {
    "key": "amount",
-   "name": "Amount",
+   "name": "AMOUNT",
    "min": -600,
    "max": 300,
    "default": -90,
@@ -2078,6 +2078,407 @@
   {
    "key": "s110",
    "name": "Spec 111",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "scview",
+   "name": "SC view",
+   "options": [
+    "OFF",
+    "ON"
+   ],
+   "default": "OFF"
+  },
+  {
+   "key": "k0",
+   "name": "Kick 1",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k2",
+   "name": "Kick 3",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k4",
+   "name": "Kick 5",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k6",
+   "name": "Kick 7",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k8",
+   "name": "Kick 9",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k10",
+   "name": "Kick 11",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k12",
+   "name": "Kick 13",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k14",
+   "name": "Kick 15",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k16",
+   "name": "Kick 17",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k18",
+   "name": "Kick 19",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k20",
+   "name": "Kick 21",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k22",
+   "name": "Kick 23",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k24",
+   "name": "Kick 25",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k26",
+   "name": "Kick 27",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k28",
+   "name": "Kick 29",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k30",
+   "name": "Kick 31",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k32",
+   "name": "Kick 33",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k34",
+   "name": "Kick 35",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k36",
+   "name": "Kick 37",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k38",
+   "name": "Kick 39",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k40",
+   "name": "Kick 41",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k42",
+   "name": "Kick 43",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k44",
+   "name": "Kick 45",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k46",
+   "name": "Kick 47",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k48",
+   "name": "Kick 49",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k50",
+   "name": "Kick 51",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k52",
+   "name": "Kick 53",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k54",
+   "name": "Kick 55",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k56",
+   "name": "Kick 57",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k58",
+   "name": "Kick 59",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k60",
+   "name": "Kick 61",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k62",
+   "name": "Kick 63",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k64",
+   "name": "Kick 65",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k66",
+   "name": "Kick 67",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k68",
+   "name": "Kick 69",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k70",
+   "name": "Kick 71",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k72",
+   "name": "Kick 73",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k74",
+   "name": "Kick 75",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k76",
+   "name": "Kick 77",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k78",
+   "name": "Kick 79",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k80",
+   "name": "Kick 81",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k82",
+   "name": "Kick 83",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k84",
+   "name": "Kick 85",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k86",
+   "name": "Kick 87",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k88",
+   "name": "Kick 89",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k90",
+   "name": "Kick 91",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k92",
+   "name": "Kick 93",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k94",
+   "name": "Kick 95",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k96",
+   "name": "Kick 97",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k98",
+   "name": "Kick 99",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k100",
+   "name": "Kick 101",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k102",
+   "name": "Kick 103",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k104",
+   "name": "Kick 105",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k106",
+   "name": "Kick 107",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k108",
+   "name": "Kick 109",
+   "min": 0,
+   "max": 30,
+   "default": 0
+  },
+  {
+   "key": "k110",
+   "name": "Kick 111",
    "min": 0,
    "max": 30,
    "default": 0

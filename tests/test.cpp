@@ -6,6 +6,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <utility>
 extern "C" {
 #include "engine.h"
 }
@@ -227,7 +228,7 @@ int main()
         E->set_param(sn, "mode", "1"); E->set_param(sn, "chan", "1"); E->set_param(rv, "chan", "1");
         snprintf(kb, 32, "%g", F60); E->set_param(rv, "freq", kb); E->set_param(rv, "amount", "-240"); E->set_param(rv, "ratio", "21");
         std::vector<int16_t> kk(2 * F), bb(2 * F, 0), o(2 * F);
-        int cc = (int)lrint(F60 / 1000.0 * 111), lmin = 99;
+        int cc = 2 * (int)lrint(F60 / 1000.0 * 111 / 2), lmin = 99;   // the drawn live columns are the even ones: the dot's
         for (int blk = 0; blk < 60; ++blk) {
             for (int i = 0; i < F; ++i) kk[2 * i] = kk[2 * i + 1] = (int16_t)(24000 * sin(2 * M_PI * 60 * (blk * F + i) / SR));
             E->process(sn, kk.data(), o.data(), F); E->process(rv, bb.data(), o.data(), F);
@@ -264,11 +265,11 @@ int main()
         g_ratio = "21"; Result full = run(true, true, 0, -600, F60); g_ratio = "4";
         check("Amount -60 + Ratio FULL: 60 Hz cut by more than 45 dB", full.bass60 < -45, full.bass60);
         void *t3 = E->create(nullptr); char kb[32];
-        E->set_param(t3, "amount", "-600"); E->get_param(t3, "amount_display", kb, 32); check("Amount -60 reads CUT", !strcmp(kb, "CUT"), 0);
-        E->set_param(t3, "ratio", "21"); E->get_param(t3, "ratio_display", kb, 32); check("Ratio top reads FULL", !strcmp(kb, "FULL"), 0);
+        E->set_param(t3, "amount", "-600"); E->get_param(t3, "amount_display", kb, 32); check("Amount -60 reads -60.0 dB", !strcmp(kb, "-60.0 dB"), 0);
+        E->set_param(t3, "ratio", "21"); E->get_param(t3, "ratio_display", kb, 32); check("Ratio top reads 21.0:1", !strcmp(kb, "21.0:1"), 0);
         E->destroy(t3);
     }
-    // SC peak: a 57 Hz sine on the SC is found within a few Hz, and "snap" puts the band there
+    // SC view: a kick (160 -> 57 Hz drop, then a 57 Hz body) on the SC draws grey bars at its body, only while SC view is on
     {
         void *sn = E->create(nullptr), *rv = E->create(nullptr); char kb[48];
         E->set_param(sn, "mode", "1");
@@ -282,12 +283,59 @@ int main()
             }
             E->process(sn, k.data(), o.data(), F); E->process(rv, z.data(), o.data(), F);
         }
-        E->get_param(rv, "peak_display", kb, 48); printf("display: %s\n", kb);
-        double pk = atof(kb + 8);
-        check("SC peak finds the body (55-70 Hz), not the click", pk > 55 && pk < 70, pk);
-        E->set_param(rv, "snap", "1");
-        E->get_param(rv, "freq_display", kb, 48);
-        check("snap puts FREQ on the SC peak", fabs(atof(kb) - pk) < 2, atof(kb));
+        (void)kb;
+        // SC view: the kick's bars are drawn at its body only while the button is on, and nothing is drawn when it is off
+        auto kickMax = [&](void *inst) { int best = 0, at = 0;
+            for (int c = 0; c < 112; c += 2) { char key[8]; snprintf(key, sizeof key, "k%d", c); char v[16] = {0}; E->get_param(inst, key, v, sizeof v); int n = atoi(v); if (n > best) { best = n; at = c; } }
+            return std::make_pair(best, at); };
+        E->set_param(rv, "scview", "0");
+        auto off = kickMax(rv);
+        check("SC view off draws no kick bars", off.first == 0, off.first);
+        E->set_param(rv, "scview", "1");
+        std::vector<int16_t> k2(2 * F), z2(2 * F, 0), o2(2 * F);
+        double ph2 = 0;
+        for (int blk = 0; blk < 800; ++blk) {
+            for (int i = 0; i < F; ++i) {
+                double tk = fmod((blk * F + i) / SR, 0.5), fr = 57 + 103 * exp(-tk * 40);
+                ph2 += 2 * M_PI * fr / SR;
+                k2[2 * i] = k2[2 * i + 1] = (int16_t)(26000 * sin(ph2) * exp(-tk * 7));
+            }
+            E->process(sn, k2.data(), o2.data(), F); E->process(rv, z2.data(), o2.data(), F);
+        }
+        auto on = kickMax(rv);
+        check("SC view on draws the kick's bars", on.first > 0, on.first);
+        double hzAt = 15.0 * pow(20000.0 / 15.0, on.second / 111.0);
+        check("SC view bars sit at the kick's body (40-90 Hz)", hzAt > 40 && hzAt < 90, hzAt);
+        E->destroy(sn); E->destroy(rv);
+    }
+    // a boost on a hi-hat's 8 kHz while the kick hits: the gain rises and falls once a hit, no flutter (it chirped when the
+    // detector listened through the bell's band), and a +30 dB boost never reaches 0 dBFS
+    {
+        void *sn = E->create(nullptr), *rv = E->create(nullptr); char kb[32];
+        E->set_param(sn, "mode", "1");
+        snprintf(kb, 32, "%g", 1000.0 * log(8000.0 / 15) / log(20000.0 / 15)); E->set_param(rv, "freq", kb);
+        E->set_param(rv, "amount", "300"); E->set_param(rv, "ratio", "21"); E->set_param(rv, "attack", "0"); E->set_param(rv, "release", "0");
+        E->set_param(rv, "thresh", "-40");
+        std::vector<int16_t> k(2 * F), h(2 * F), o(2 * F);
+        double pk = 0, px = 0, hp = 0, last = 0, dir = 0; unsigned s1 = 7, s2 = 99; int flips = 0, clips = 0, nb = 0;
+        for (int blk = 0; blk < 34 * 20; ++blk) {
+            for (int i = 0; i < F; ++i) {
+                long n = (long)blk * F + i; double t = fmod(n / SR, 0.5), fr = 57 + 103 * exp(-t * 40);
+                pk += 2 * M_PI * fr / SR; s1 = s1 * 1103515245u + 12345u; double nz = ((s1 >> 16) & 0x7fff) / 16384.0 - 1;
+                double kick = 26000 * sin(pk) * exp(-t * 7) + 9000 * nz * exp(-t * 400);
+                s2 = s2 * 1664525u + 1013904223u; double n2 = ((s2 >> 16) & 0x7fff) / 16384.0 - 1, y = n2 - px; px = n2; hp = 0.6 * hp + y;
+                double hat = 6000 * hp * exp(-fmod(n / SR, 0.125) * 60);
+                k[2 * i] = k[2 * i + 1] = (int16_t)fmax(-32767, fmin(32767, kick)); h[2 * i] = h[2 * i + 1] = (int16_t)fmax(-32767, fmin(32767, hat));
+            }
+            E->process(sn, k.data(), o.data(), F); E->process(rv, h.data(), o.data(), F);
+            for (int i = 0; i < F; ++i) if (abs(o[2 * i]) >= 32767) clips++;
+            char g[16]; E->get_param(rv, "gr", g, 16); double gd = atof(g) / 10;
+            if (blk > 34 * 2) { double d = gd - last; if (fabs(d) > 0.3) { if (dir * d < 0) flips++; dir = d; } nb++; }
+            last = gd;
+        }
+        double perSec = flips / (nb * F / SR);
+        check("hi-hat boost: the gain turns about twice a hit (no flutter)", perSec <= 6, perSec);
+        check("hi-hat boost +30 dB stays under 0 dBFS", clips == 0, clips);
         E->destroy(sn); E->destroy(rv);
     }
     // the graph's data
