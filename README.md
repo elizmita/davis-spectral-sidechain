@@ -1,6 +1,6 @@
 # DAVIS Spectral Sidechain
 
-A one-band **sidechain dynamic EQ** for Akai MPC OS standalone (VST2, MPC OS 3.x, Gen1 armv7: MPC Live / Live II / One / X / Force).
+A one-band **sidechain dynamic EQ** for Akai MPC OS standalone (VST2, MPC OS 3.10.1, Gen1 armv7: MPC Live / Live II / One / X / Force).
 Put the kick on one track and the bass on another: the bass makes room for the kick **only at the kick's frequency and only
 while the kick plays**, instead of ducking its whole level.
 
