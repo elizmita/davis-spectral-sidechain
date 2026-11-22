@@ -35,7 +35,7 @@ In SEND mode only RECEIVE/SEND and A-D do anything, so the rest of the screen is
 ![OUT on](docs/preview-out.png)
 
 ## Install
-1. MPC (OS 3.x): in Preferences, turn on **Enable Enhancements** and **External Plugin Support**.
+1. MPC (OS 3.10.1): in Preferences, turn on **Enable Enhancements** and **External Plugin Support**.
 2. Unzip `DAVIS-Spectral-Sidechain-<version>-VST2-Plugins.zip` and copy the folder **`DAVIS - VST - Spectral Sidechain`** into
    the **`VST2 Plugins`** folder of the MPC's internal drive, SD card or USB drive you use for plugins.
 3. Restart the MPC. The plugin is under the insert effects as **Spectral Sidechain** (DAVIS).
